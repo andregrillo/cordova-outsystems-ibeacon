@@ -186,7 +186,7 @@ cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShel
 
  
 #### Remove custom notifications for a single monitored iBeacon
-Use the same identifier when the beacon was created
+Use the same identifier when the beacon was created. 
 If no custom notification is set, the app will display a simple "Welcome" and "Goodbye" notification text.
 ```
 cordova.plugins.locationManager.removeCustomNotificationsForBeacon(["beaconOnTheMacBooksShelf"]);
