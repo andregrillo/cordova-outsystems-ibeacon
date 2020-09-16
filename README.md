@@ -130,7 +130,7 @@ cordova.plugins.locationManager.setDelegate(delegate);
 
 // required in iOS 8+
 //cordova.plugins.locationManager.requestWhenInUseAuthorization(); 
-cordova.plugins.locationManager.requestAlwaysAuthorization()
+cordova.plugins.locationManager.requestAlwaysAuthorization();
 
 cordova.plugins.locationManager.startMonitoringForRegion(beaconRegion)
 	.fail(function(e) { console.error(e); })
