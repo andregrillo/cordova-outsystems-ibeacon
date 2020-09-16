@@ -60,10 +60,10 @@ related methods: ```requestWhenInUseAuthorization``` and ```requestAlwaysAuthori
 
 In order to use Advertising (e.g ```startAdvertising```), the iOS-Capability "Location updates" is required. (set in Xcode -> [your Target] -> Capabilities -> Background Modes -> Location updates)
 
-#### Standard [CLLocationManager](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/CLLocationManager/CLLocationManager.html) functions
+### Standard [CLLocationManager](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/CLLocationManager/CLLocationManager.html) functions
 
 
-##### Creating BeaconRegion DTOs
+#### Creating BeaconRegion DTOs
 
 ```
 /**
@@ -85,7 +85,7 @@ function createBeacon() {
 } 
 ```
  
-##### Start monitoring a single iBeacon
+#### Start monitoring a single iBeacon
 ```
 var logToDom = function (message) {
 	var e = document.createElement('label');
@@ -139,7 +139,7 @@ cordova.plugins.locationManager.startMonitoringForRegion(beaconRegion)
 ```
  
 
-##### Stop monitoring a single iBeacon
+#### Stop monitoring a single iBeacon
 ```
 var uuid = '00000000-0000-0000-0000-000000000000';
 var identifier = 'beaconOnTheMacBooksShelf';
@@ -154,7 +154,7 @@ cordova.plugins.locationManager.stopMonitoringForRegion(beaconRegion)
 ```
  
 
-##### Custom notifications for a single monitored iBeacon 
+#### Custom notifications for a single monitored iBeacon 
 Use the same identifier when the beacon was created, followed by EnterTitle, EnterMessage, ExitTitle, ExitMessage.
 ```
 cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "Hello!", "Welcome to our great Hospital!", "Goodbye!", "Thank you for your preference!"]);
@@ -162,7 +162,7 @@ cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShel
 ```
  
 
-##### Disable custom notifications for a single monitored iBeacon
+#### Disable custom notifications for a single monitored iBeacon
 Use the same identifier when the beacon was created.
 Use the word "disabled" in the EnterMessage and/or ExitMessage strings
 
@@ -185,7 +185,7 @@ cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShel
 ```
 
  
-##### Remove custom notifications for a single monitored iBeacon
+#### Remove custom notifications for a single monitored iBeacon
 Use the same identifier when the beacon was created
 ```
 cordova.plugins.locationManager.removeCustomNotificationsForBeacon(["beaconOnTheMacBooksShelf"]);
@@ -193,7 +193,7 @@ cordova.plugins.locationManager.removeCustomNotificationsForBeacon(["beaconOnThe
 ```
 
  
-##### Start ranging a single iBeacon
+#### Start ranging a single iBeacon
 ```
 var logToDom = function (message) {
 	var e = document.createElement('label');
@@ -246,7 +246,7 @@ cordova.plugins.locationManager.startRangingBeaconsInRegion(beaconRegion)
 
 ```
  
-##### Stop ranging a single iBeacon
+#### Stop ranging a single iBeacon
 ```
 var uuid = '00000000-0000-0000-0000-000000000000';
 var identifier = 'beaconOnTheMacBooksShelf';
@@ -260,7 +260,7 @@ cordova.plugins.locationManager.stopRangingBeaconsInRegion(beaconRegion)
 
 ```
 
-##### Determine if advertising is supported (iOS is supported, Android is not yet)
+#### Determine if advertising is supported (iOS is supported, Android is not yet)
 
 ```
 cordova.plugins.locationManager.isAdvertisingAvailable()
@@ -272,7 +272,7 @@ cordova.plugins.locationManager.isAdvertisingAvailable()
 
 ```
 
-##### Determine if advertising is currently turned on (iOS only)
+#### Determine if advertising is currently turned on (iOS only)
 
 ```        
 cordova.plugins.locationManager.isAdvertising()
@@ -284,7 +284,7 @@ cordova.plugins.locationManager.isAdvertising()
 
 ```
 
-##### Start advertising device as an iBeacon (iOS only)
+#### Start advertising device as an iBeacon (iOS only)
 ```
 var uuid = '00000000-0000-0000-0000-000000000000';
 var identifier = 'advertisedBeacon';
@@ -325,7 +325,7 @@ cordova.plugins.locationManager.isAdvertisingAvailable()
 
 ```
 
-##### Stopping the advertising (iOS only)
+#### Stopping the advertising (iOS only)
 ```
 cordova.plugins.locationManager.stopAdvertising()
     .fail(function(e) { console.error(e); })
@@ -333,7 +333,7 @@ cordova.plugins.locationManager.stopAdvertising()
 
 ```
 
-##### Enable/Disable BlueTooth (Android only)
+#### Enable/Disable BlueTooth (Android only)
 
 ```        
 cordova.plugins.locationManager.isBluetoothEnabled()
@@ -350,7 +350,7 @@ cordova.plugins.locationManager.isBluetoothEnabled()
 
 ```
 
-##### Specify wildcard UUID (Android only)
+#### Specify wildcard UUID (Android only)
 
 ```javascript
 var uuid = cordova.plugins.locationManager.BeaconRegion.WILDCARD_UUID; //wildcard
@@ -391,7 +391,7 @@ cordova.plugins.locationManager.startMonitoringForRegion(beaconRegion)
 
 ```
 
-##### Enable ARMA filter for distance calculations (Android only)
+#### Enable ARMA filter for distance calculations (Android only)
 
 The underlying library uses the moving average to calculate distance by default, but an ARMA filter can be enabled which will weigh more recent measurements higher than older measurements. It can be enabled by adding the following preference to your `config.xml` file:
 
