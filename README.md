@@ -155,6 +155,7 @@ cordova.plugins.locationManager.stopMonitoringForRegion(beaconRegion)
 
 #### Custom notifications for a single monitored iBeacon 
 Use the same identifier when the beacon was created, followed by EnterTitle, EnterMessage, ExitTitle, ExitMessage.
+If no custom notification is set, the app will display a simple "Welcome" and "Goodbye" notification text.
 ```
 cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "Hello!", "Welcome to our great Hospital!", "Goodbye!", "Thank you for your preference!"]);
 
@@ -186,6 +187,7 @@ cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShel
  
 #### Remove custom notifications for a single monitored iBeacon
 Use the same identifier when the beacon was created
+If no custom notification is set, the app will display a simple "Welcome" and "Goodbye" notification text.
 ```
 cordova.plugins.locationManager.removeCustomNotificationsForBeacon(["beaconOnTheMacBooksShelf"]);
 
