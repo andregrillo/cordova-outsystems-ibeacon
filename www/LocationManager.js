@@ -390,7 +390,25 @@ LocationManager.prototype.requestWhenInUseAuthorization = function() {
 LocationManager.prototype.requestAlwaysAuthorization = function() {
 	return this._promisedExec('requestAlwaysAuthorization', [], []);
 };
+                              
+/**
+ *
+ *  Sets the Beacon's notification custom messages
+ *
+ */
+LocationManager.prototype.setNotificationMessage = function(notification) {
+   return this._promisedExec('setNotificationMessage', notification);
+};
 
+/**
+ *
+ *  Removes the Beacon's notification custom messages
+ *
+ */
+LocationManager.prototype.removeCustomNotificationsForBeacon = function(beaconName) {
+  return this._promisedExec('removeCustomNotificationsForBeacon', beaconName);
+};
+               
 /** 
  * 
  * @returns {Q.Promise} Returns a promise which is resolved with an {Array}
@@ -556,5 +574,4 @@ locationManager.Delegate = Delegate;
 
 module.exports.LocationManager = LocationManager;
 module.exports.locationManager = locationManager;
-
 

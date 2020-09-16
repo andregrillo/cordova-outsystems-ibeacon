@@ -109,24 +109,41 @@
 
 -(void)locationManager:(CLLocationManager *)manager didEnterRegion:(CLRegion *)region {
     
-    //Register the notifications
-    UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
-    //content.title = [NSString localizedUserNotificationStringForKey:@"Hey!" arguments:nil];
-    content.body = [NSString localizedUserNotificationStringForKey:@"The beacon is nearby!" arguments:nil];
-    content.sound = [UNNotificationSound defaultSound];
+    NSString *key = region.identifier;
+    
+    //Retrieves previously saved message from NSUserDefaults
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *beaconDict = [userDefaults objectForKey:key];
+    NSString *enterMessage = beaconDict[@"enterMessage"];
+    NSString *enterMessageTitle = beaconDict[@"enterMessageTitle"];
+    
+    //Check if notifications are enabled (in app)
+    if (![enterMessage isEqualToString:@"disabled"]) {
+        
+        //Register the notifications
+        UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
+        if (![enterMessageTitle isEqualToString:@""] && enterMessageTitle.length > 0) {
+            content.title = [NSString localizedUserNotificationStringForKey:enterMessageTitle arguments:nil];
+        }
+        if ([enterMessage isEqualToString:@""] || enterMessage.length == 0) {
+            content.body = [NSString localizedUserNotificationStringForKey:@"Welcome!" arguments:nil];
+        } else {
+            content.body = [NSString localizedUserNotificationStringForKey:enterMessage arguments:nil];
+        }
+        content.sound = [UNNotificationSound defaultSound];
 
-    // Deliver the notification in five seconds.
-    UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
-                triggerWithTimeInterval:5 repeats:NO];
-    UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:@"FiveSeconds"
-                content:content trigger:trigger];
+        // Deliver the notification in one second.
+        UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
+                    triggerWithTimeInterval:1 repeats:NO];
+        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:@"OneSecond"
+                    content:content trigger:trigger];
 
-    // Schedule the notification.
-    UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
-    [center addNotificationRequest:request withCompletionHandler:nil];
+        // Schedule the notification.
+        UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+        [center addNotificationRequest:request withCompletionHandler:nil];
+    }
     
-    
-    
+
     if (manager != self.locationManager) return;
     [self.queue addOperationWithBlock:^{
         
@@ -149,21 +166,38 @@
 
 -(void)locationManager:(CLLocationManager *)manager didExitRegion:(CLRegion *)region {
     
-    //Register the notifications
-    UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
-    //content.title = [NSString localizedUserNotificationStringForKey:@"Attention!" arguments:nil];
-    content.body = [NSString localizedUserNotificationStringForKey:@"The beacon is away!" arguments:nil];
-    content.sound = [UNNotificationSound defaultSound];
+    NSString *key = region.identifier;
+    
+    //Retrieves previously saved message from NSUserDefaults
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *beaconDict = [userDefaults objectForKey:key];
+    NSString *exitMessage = beaconDict[@"exitMessage"];
+    NSString *exitMessageTitle = beaconDict[@"exitMessageTitle"];
+    
+    //Check if notifications are enabled (in app)
+    if (![exitMessage isEqualToString:@"disabled"]) {
+        //Register the notifications
+        UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
+        if (![exitMessageTitle isEqualToString:@""] || exitMessageTitle.length > 0) {
+            content.title = [NSString localizedUserNotificationStringForKey:exitMessageTitle arguments:nil];
+        }
+        if ([exitMessage isEqualToString:@""] || exitMessage.length == 0) {
+            content.body = [NSString localizedUserNotificationStringForKey:@"Goodbye!" arguments:nil];
+        } else {
+            content.body = [NSString localizedUserNotificationStringForKey:exitMessage arguments:nil];
+        }
+        content.sound = [UNNotificationSound defaultSound];
 
-    // Deliver the notification in five seconds.
-    UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
-                triggerWithTimeInterval:5 repeats:NO];
-    UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:@"FiveSeconds"
-                content:content trigger:trigger];
+        // Deliver the notification in one second.
+        UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
+                    triggerWithTimeInterval:1 repeats:NO];
+        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:@"OneSecond"
+                    content:content trigger:trigger];
 
-    // Schedule the notification.
-    UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
-    [center addNotificationRequest:request withCompletionHandler:nil];
+        // Schedule the notification.
+        UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+        [center addNotificationRequest:request withCompletionHandler:nil];
+    }
     
     
     if (manager != self.locationManager) return;
@@ -447,6 +481,44 @@
         
         
     } :command];
+}
+
+- (void) setNotificationMessage:(CDVInvokedUrlCommand*)command {
+    
+    if (!command.arguments[0] || !command.arguments[1] || !command.arguments[2] || !command.arguments[3] || !command.arguments[4]) {
+        //Retornar erro ao Cordova
+        
+    } else {
+//        NSString *uuid = command.arguments[0];
+//        NSString *name = command.arguments[1];
+//        NSString *minor = command.arguments[2];
+//        NSString *major = command.arguments[3];
+//        NSString *enterMessage = command.arguments[4];
+//        NSString *enterMessageTitle = command.arguments[5];
+//        NSString *exitMessage = command.arguments[6];
+//        NSString *exitMessageTitle = command.arguments[7];
+        
+//        NSDictionary* beaconDict = @{ @"uuid" : uuid, @"name" : name, @"minor" : minor, @"major" : major, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
+        
+        NSString *name = command.arguments[0];
+        NSString *enterMessageTitle = command.arguments[1];
+        NSString *enterMessage = command.arguments[2];
+        NSString *exitMessageTitle = command.arguments[3];
+        NSString *exitMessage = command.arguments[4];
+        
+        NSDictionary* beaconDict = @{ @"name" : name, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
+        
+        [[NSUserDefaults standardUserDefaults] setObject:beaconDict forKey:name];
+    }
+}
+
+- (void) removeCustomNotificationsForBeacon:(CDVInvokedUrlCommand*)command {
+     if (!command.arguments[0]) {
+           
+       } else {
+           NSString *beaconName = command.arguments[0];
+           [[NSUserDefaults standardUserDefaults] removeObjectForKey:beaconName];
+       }
 }
 
 - (void) requestAlwaysAuthorization:(CDVInvokedUrlCommand*)command {

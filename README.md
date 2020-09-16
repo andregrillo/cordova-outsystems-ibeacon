@@ -153,6 +153,45 @@ cordova.plugins.locationManager.stopMonitoringForRegion(beaconRegion)
 
 ```
  
+
+##### Custom notifications for a single monitored iBeacon 
+Use the same identifier when the beacon was created, followed by EnterTitle, EnterMessage, ExitTitle, ExitMessage.
+```
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "Hello!", "Welcome to our great Hospital!", "Goodbye!", "Thank you for your preference!"]);
+
+```
+ 
+
+##### Disable custom notifications for a single monitored iBeacon
+Use the same identifier when the beacon was created.
+Use the word "disabled" in the EnterMessage and/or ExitMessage strings
+
+Disabling the "Enter" notifications:
+```
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "disabled", "", ""]);
+
+```
+
+Disabling the "Exit" notifications:
+```
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "", "", "disabled"]);
+
+```
+
+Disabling both "Enter" and Exit" notifications:
+```
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "disabled", "", "disabled"]);
+
+```
+
+ 
+##### Remove custom notifications for a single monitored iBeacon
+Use the same identifier when the beacon was created
+```
+cordova.plugins.locationManager.removeCustomNotificationsForBeacon(["beaconOnTheMacBooksShelf"]);
+
+```
+
  
 ##### Start ranging a single iBeacon
 ```
