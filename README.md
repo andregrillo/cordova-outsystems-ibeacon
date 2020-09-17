@@ -166,13 +166,13 @@ cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShel
 Use the same identifier when the beacon was created.
 Use the word "disabled" in the EnterMessage and/or ExitMessage strings
 
-Disabling the "Enter" notifications:
+Disabling the "Enter" notifications only:
 ```
 cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "disabled", "Goodbye!", "Thank you for your preference!"]);
 
 ```
 
-Disabling the "Exit" notifications:
+Disabling the "Exit" notifications only:
 ```
 cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "Hello!", "Welcome to our great Hospital!", "", "disabled"]);
 
