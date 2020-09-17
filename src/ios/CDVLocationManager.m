@@ -507,19 +507,8 @@
 - (void) setNotificationMessage:(CDVInvokedUrlCommand*)command {
     
     if (!command.arguments[0] || !command.arguments[1] || !command.arguments[2] || !command.arguments[3] || !command.arguments[4] || !command.arguments[5]) {
-        //Retornar erro ao Cordova
         
     } else {
-//        NSString *uuid = command.arguments[0];
-//        NSString *name = command.arguments[1];
-//        NSString *minor = command.arguments[2];
-//        NSString *major = command.arguments[3];
-//        NSString *enterMessage = command.arguments[4];
-//        NSString *enterMessageTitle = command.arguments[5];
-//        NSString *exitMessage = command.arguments[6];
-//        NSString *exitMessageTitle = command.arguments[7];
-        
-//        NSDictionary* beaconDict = @{ @"uuid" : uuid, @"name" : name, @"minor" : minor, @"major" : major, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
         
         NSString *beaconName = command.arguments[0];
         NSString *deepLinkID = command.arguments[1];
@@ -536,7 +525,6 @@
 
 - (void) removeCustomNotificationsForBeacon:(CDVInvokedUrlCommand*)command {
      if (!command.arguments[0]) {
-           //Retornar erro ao Cordova
            
        } else {
            NSString *beaconName = command.arguments[0];
