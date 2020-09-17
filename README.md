@@ -165,7 +165,8 @@ cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShel
 
 #### Disable custom notifications for a single monitored iBeacon
 Use the same identifier when the beacon was created.
-Use the word "disabled" in the EnterMessage and/or ExitMessage strings
+Use the word "disabled" in the EnterMessage and/or ExitMessage strings.
+For enabling the custom messages again, you just need to set it up (see "Custom notifications for a single monitored iBeacon" section above).
 
 Disabling the "Enter" notifications only:
 ```
