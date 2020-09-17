@@ -1,3 +1,4 @@
+cordova.define("com.unarin.cordova.beacon.LocationManager", function(require, exports, module) {
 /*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -408,8 +409,17 @@ LocationManager.prototype.setNotificationMessage = function(notification) {
 LocationManager.prototype.removeCustomNotificationsForBeacon = function(beaconName) {
   return this._promisedExec('removeCustomNotificationsForBeacon', beaconName);
 };
+
+/**
+ *
+ *  Checks the notification's deeplink
+ *
+*/
+LocationManager.prototype.checkDeepLink = function(deepLink) {
+ return this._promisedExec('getDeepLink', deepLink, [], []);
+};
                
-/** 
+/**
  * 
  * @returns {Q.Promise} Returns a promise which is resolved with an {Array}
  * of {Region} instances that are being monitored by the native layer.
@@ -575,3 +585,5 @@ locationManager.Delegate = Delegate;
 module.exports.LocationManager = LocationManager;
 module.exports.locationManager = locationManager;
 
+
+});

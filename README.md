@@ -152,17 +152,15 @@ cordova.plugins.locationManager.stopMonitoringForRegion(beaconRegion)
 
 ```
  
-
 #### Custom notifications for a single monitored iBeacon 
-Use the same identifier when the beacon was created, followed by EnterTitle, EnterMessage, ExitTitle, ExitMessage.
+Use the same identifier when the beacon was created, followed by: DeepLinkID, EnterTitle, EnterMessage, ExitTitle, ExitMessage.
 If no custom notification is set, the app will display a simple "Welcome" and "Goodbye" notification text.
 Titles are optional. Just leave the double quotes empty if you want it to be hidden.
 ```
-cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "Hello!", "Welcome to our great Hospital!", "Goodbye!", "Thank you for your preference!"]);
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "JustArrived", Hello!", "Welcome to our great Hospital!", "Goodbye!", "Thank you for your preference!"]);
 
 ```
  
-
 #### Disable custom notifications for a single monitored iBeacon
 Use the same identifier when the beacon was created.
 Use the word "disabled" in the EnterMessage and/or ExitMessage strings.
@@ -192,6 +190,17 @@ Use the same identifier when the beacon was created.
 If no custom notification is set, the app will display a simple "Welcome" and "Goodbye" notification text.
 ```
 cordova.plugins.locationManager.removeCustomNotificationsForBeacon(["beaconOnTheMacBooksShelf"]);
+
+```
+
+#### Verify the deep link string 
+Method to be called in OutSystems app on OnApplicationReady and OnApplicationResume:
+```
+cordova.plugins.locationManager.checkDeepLink("").then(function(result) {
+  console.log(result);
+    })
+    .fail(function(e) { console.error(e); })
+    .done();
 
 ```
 

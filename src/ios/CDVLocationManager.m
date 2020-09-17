@@ -114,6 +114,7 @@
     //Retrieves previously saved message from NSUserDefaults
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     NSDictionary *beaconDict = [userDefaults objectForKey:key];
+    NSString *deepLinkID = [NSString stringWithFormat:@"%@-Enter",beaconDict[@"deepLinkID"]];
     NSString *enterMessage = beaconDict[@"enterMessage"];
     NSString *enterMessageTitle = beaconDict[@"enterMessageTitle"];
     
@@ -135,7 +136,7 @@
         // Deliver the notification in one second.
         UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
                     triggerWithTimeInterval:1 repeats:NO];
-        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:@"OneSecond"
+        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:deepLinkID
                     content:content trigger:trigger];
 
         // Schedule the notification.
@@ -171,6 +172,7 @@
     //Retrieves previously saved message from NSUserDefaults
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     NSDictionary *beaconDict = [userDefaults objectForKey:key];
+    NSString *deepLinkID = [NSString stringWithFormat:@"%@-Exit",beaconDict[@"deepLinkID"]];
     NSString *exitMessage = beaconDict[@"exitMessage"];
     NSString *exitMessageTitle = beaconDict[@"exitMessageTitle"];
     
@@ -191,7 +193,7 @@
         // Deliver the notification in one second.
         UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
                     triggerWithTimeInterval:1 repeats:NO];
-        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:@"OneSecond"
+        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:deepLinkID
                     content:content trigger:trigger];
 
         // Schedule the notification.
@@ -483,9 +485,28 @@
     } :command];
 }
 
+- (void) getDeepLink:(CDVInvokedUrlCommand*)command {
+    [self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand *command) {
+        
+        //Retrieves previously saved deepLinkID from NSUserDefaults
+        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+        NSString *deepLink = [userDefaults objectForKey:@"deepLink"];
+        
+        NSLog(@">>> Deeplink checked: %@ <<<", deepLink);
+        
+        [userDefaults removeObjectForKey:@"deepLink"];
+        
+        if (deepLink.length == 0 || [deepLink isEqualToString:@""]) {
+            return [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Deep Link not defined"];
+        } else {
+            return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:deepLink];
+        }
+    } :command];
+}
+
 - (void) setNotificationMessage:(CDVInvokedUrlCommand*)command {
     
-    if (!command.arguments[0] || !command.arguments[1] || !command.arguments[2] || !command.arguments[3] || !command.arguments[4]) {
+    if (!command.arguments[0] || !command.arguments[1] || !command.arguments[2] || !command.arguments[3] || !command.arguments[4] || !command.arguments[5]) {
         //Retornar erro ao Cordova
         
     } else {
@@ -500,20 +521,22 @@
         
 //        NSDictionary* beaconDict = @{ @"uuid" : uuid, @"name" : name, @"minor" : minor, @"major" : major, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
         
-        NSString *name = command.arguments[0];
-        NSString *enterMessageTitle = command.arguments[1];
-        NSString *enterMessage = command.arguments[2];
-        NSString *exitMessageTitle = command.arguments[3];
-        NSString *exitMessage = command.arguments[4];
+        NSString *beaconName = command.arguments[0];
+        NSString *deepLinkID = command.arguments[1];
+        NSString *enterMessageTitle = command.arguments[2];
+        NSString *enterMessage = command.arguments[3];
+        NSString *exitMessageTitle = command.arguments[4];
+        NSString *exitMessage = command.arguments[5];
         
-        NSDictionary* beaconDict = @{ @"name" : name, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
+        NSDictionary* beaconDict = @{ @"beaconName" : beaconName, @"deepLinkID" : deepLinkID, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
         
-        [[NSUserDefaults standardUserDefaults] setObject:beaconDict forKey:name];
+        [[NSUserDefaults standardUserDefaults] setObject:beaconDict forKey:beaconName];
     }
 }
 
 - (void) removeCustomNotificationsForBeacon:(CDVInvokedUrlCommand*)command {
      if (!command.arguments[0]) {
+           //Retornar erro ao Cordova
            
        } else {
            NSString *beaconName = command.arguments[0];

@@ -76,10 +76,21 @@ BOOL isGrantedNotificationAccess;
 }
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler{
-    
+
     UNNotificationPresentationOptions presentationOptions = UNNotificationPresentationOptionSound +UNNotificationPresentationOptionAlert;
 
     completionHandler(presentationOptions);
+}
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler{
+    
+    // Notification was tapped while app was in background.
+    NSString* notificationID = response.notification.request.identifier;
+    
+    [[NSUserDefaults standardUserDefaults] setObject:notificationID forKey:@"deepLink"];
+        
+    completionHandler();
+    
 }
 
 
