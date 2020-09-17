@@ -168,13 +168,13 @@ Use the word "disabled" in the EnterMessage and/or ExitMessage strings
 
 Disabling the "Enter" notifications:
 ```
-cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "disabled", "", ""]);
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "disabled", "Goodbye!", "Thank you for your preference!"]);
 
 ```
 
 Disabling the "Exit" notifications:
 ```
-cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "", "", "disabled"]);
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "Hello!", "Welcome to our great Hospital!", "", "disabled"]);
 
 ```
 
