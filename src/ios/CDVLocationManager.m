@@ -111,37 +111,62 @@
     
     NSString *key = region.identifier;
     
-    //Retrieves previously saved message from NSUserDefaults
+    //Retrieves previously saved notifications from NSUserDefaults
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    NSDictionary *beaconDict = [userDefaults objectForKey:key];
-    NSString *deepLinkID = [NSString stringWithFormat:@"%@-Enter",beaconDict[@"deepLinkID"]];
-    NSString *enterMessage = beaconDict[@"enterMessage"];
-    NSString *enterMessageTitle = beaconDict[@"enterMessageTitle"];
+    NSArray *beaconNotificationsArray = [userDefaults objectForKey:key];
+    NSMutableArray *newbeaconNotificationsArray = [NSMutableArray arrayWithArray:beaconNotificationsArray];
     
-    //Check if notifications are enabled (in app)
-    if (![enterMessage isEqualToString:@"disabled"]) {
+    if (beaconNotificationsArray.count > 0) {
         
-        //Register the notifications
-        UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
-        if (![enterMessageTitle isEqualToString:@""] && enterMessageTitle.length > 0) {
-            content.title = [NSString localizedUserNotificationStringForKey:enterMessageTitle arguments:nil];
-        }
-        if ([enterMessage isEqualToString:@""] || enterMessage.length == 0) {
-            content.body = [NSString localizedUserNotificationStringForKey:@"Welcome!" arguments:nil];
-        } else {
-            content.body = [NSString localizedUserNotificationStringForKey:enterMessage arguments:nil];
-        }
-        content.sound = [UNNotificationSound defaultSound];
+        for (int i=0; i < beaconNotificationsArray.count; i++) {
+            NSDictionary *notification = beaconNotificationsArray[i];
+            NSDate* dateStart = notification[@"dateTimeStart"];
+            NSDate* dateEnd = notification[@"dateTimeEnd"];
+            NSDate * now = [NSDate date];
+            BOOL isSameDay = [self isSameDay:dateStart otherDay:now];
+            
+            if (isSameDay) {
+                BOOL isInTime = [self isInTime:dateStart endTime:dateEnd];
+                if (isInTime) {
+                    NSString *deepLinkID = notification[@"deepLinkID"];
+                    NSString *enterMessage = notification[@"enterMessage"];
+                    NSString *enterMessageTitle = notification[@"enterMessageTitle"];
+                    
+                    //Check if notifications are enabled (in app)
+                    if (![enterMessage isEqualToString:@"disabled"]) {
+                        //Register the notifications
+                        UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
+                        if (![enterMessageTitle isEqualToString:@""] && enterMessageTitle.length > 0) {
+                            content.title = [NSString localizedUserNotificationStringForKey:enterMessageTitle arguments:nil];
+                        }
+                        if ([enterMessage isEqualToString:@""] || enterMessage.length == 0) {
+                            content.body = [NSString localizedUserNotificationStringForKey:@"Welcome!" arguments:nil];
+                        } else {
+                            content.body = [NSString localizedUserNotificationStringForKey:enterMessage arguments:nil];
+                        }
+                        content.sound = [UNNotificationSound defaultSound];
 
-        // Deliver the notification in one second.
-        UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
-                    triggerWithTimeInterval:1 repeats:NO];
-        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:deepLinkID
-                    content:content trigger:trigger];
+                        // Deliver the notification in one second.
+                        UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
+                                    triggerWithTimeInterval:1 repeats:NO];
+                        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:deepLinkID
+                                    content:content trigger:trigger];
 
-        // Schedule the notification.
-        UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
-        [center addNotificationRequest:request withCompletionHandler:nil];
+                        // Schedule the notification.
+                        UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+                        [center addNotificationRequest:request withCompletionHandler:nil];
+                        
+                        //Remove the sent notification from userDefaults
+                        [newbeaconNotificationsArray removeObjectAtIndex:i];
+                        if (newbeaconNotificationsArray.count == 0) {
+                            [userDefaults removeObjectForKey:key];
+                        } else {
+                            [userDefaults setObject:newbeaconNotificationsArray forKey:key];
+                        }
+                    }
+                }
+            }
+        }
     }
     
 
@@ -169,36 +194,61 @@
     
     NSString *key = region.identifier;
     
-    //Retrieves previously saved message from NSUserDefaults
+    //Retrieves previously saved notifications from NSUserDefaults
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    NSDictionary *beaconDict = [userDefaults objectForKey:key];
-    NSString *deepLinkID = [NSString stringWithFormat:@"%@-Exit",beaconDict[@"deepLinkID"]];
-    NSString *exitMessage = beaconDict[@"exitMessage"];
-    NSString *exitMessageTitle = beaconDict[@"exitMessageTitle"];
+    NSArray *beaconNotificationsArray = [userDefaults objectForKey:key];
+    NSMutableArray *newbeaconNotificationsArray = [NSMutableArray arrayWithArray:beaconNotificationsArray];
     
-    //Check if notifications are enabled (in app)
-    if (![exitMessage isEqualToString:@"disabled"]) {
-        //Register the notifications
-        UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
-        if (![exitMessageTitle isEqualToString:@""] || exitMessageTitle.length > 0) {
-            content.title = [NSString localizedUserNotificationStringForKey:exitMessageTitle arguments:nil];
+    if (beaconNotificationsArray.count > 0) {
+        for (int i=0; i < beaconNotificationsArray.count; i++) {
+            NSDictionary *notification = beaconNotificationsArray[i];
+            NSDate* dateStart = notification[@"dateTimeStart"];
+            NSDate* dateEnd = notification[@"dateTimeEnd"];
+            NSDate * now = [NSDate date];
+            BOOL isSameDay = [self isSameDay:dateStart otherDay:now];
+            
+            if (isSameDay) {
+                BOOL isInTime = [self isInTime:dateStart endTime:dateEnd];
+                if (isInTime) {
+                    NSString *deepLinkID = notification[@"deepLinkID"];
+                    NSString *exitMessage = notification[@"exitMessage"];
+                    NSString *exitMessageTitle = notification[@"exitMessageTitle"];
+                    
+                    //Check if notifications are enabled (in app)
+                    if (![exitMessage isEqualToString:@"disabled"]) {
+                        //Register the notifications
+                        UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
+                        if (![exitMessageTitle isEqualToString:@""] && exitMessageTitle.length > 0) {
+                            content.title = [NSString localizedUserNotificationStringForKey:exitMessageTitle arguments:nil];
+                        }
+                        if ([exitMessage isEqualToString:@""] || exitMessage.length == 0) {
+                            content.body = [NSString localizedUserNotificationStringForKey:@"Goodbye!" arguments:nil];
+                        } else {
+                            content.body = [NSString localizedUserNotificationStringForKey:exitMessage arguments:nil];
+                        }
+                        content.sound = [UNNotificationSound defaultSound];
+                        
+                        // Deliver the notification in one second.
+                        UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
+                                                                      triggerWithTimeInterval:1 repeats:NO];
+                        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:deepLinkID
+                                                                                              content:content trigger:trigger];
+                        
+                        // Schedule the notification.
+                        UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
+                        [center addNotificationRequest:request withCompletionHandler:nil];
+                        
+                        //Remove the sent notification from userDefaults
+                        [newbeaconNotificationsArray removeObjectAtIndex:i];
+                        if (newbeaconNotificationsArray.count == 0) {
+                            [userDefaults removeObjectForKey:key];
+                        } else {
+                            [userDefaults setObject:newbeaconNotificationsArray forKey:key];
+                        }
+                    }
+                }
+            }
         }
-        if ([exitMessage isEqualToString:@""] || exitMessage.length == 0) {
-            content.body = [NSString localizedUserNotificationStringForKey:@"Goodbye!" arguments:nil];
-        } else {
-            content.body = [NSString localizedUserNotificationStringForKey:exitMessage arguments:nil];
-        }
-        content.sound = [UNNotificationSound defaultSound];
-
-        // Deliver the notification in one second.
-        UNTimeIntervalNotificationTrigger* trigger = [UNTimeIntervalNotificationTrigger
-                    triggerWithTimeInterval:1 repeats:NO];
-        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:deepLinkID
-                    content:content trigger:trigger];
-
-        // Schedule the notification.
-        UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
-        [center addNotificationRequest:request withCompletionHandler:nil];
     }
     
     
@@ -221,6 +271,48 @@
         } :nil :NO :self.delegateCallbackId];
     }];
 }
+
+- (BOOL)isSameDay:(NSDate*)date1 otherDay:(NSDate*)date2 {
+    NSCalendar* calendar = [NSCalendar currentCalendar];
+    
+    unsigned unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth |  NSCalendarUnitDay;
+    NSDateComponents* comp1 = [calendar components:unitFlags fromDate:date1];
+    NSDateComponents* comp2 = [calendar components:unitFlags fromDate:date2];
+    
+    return [comp1 day]   == [comp2 day] &&
+    [comp1 month] == [comp2 month] &&
+    [comp1 year]  == [comp2 year];
+    
+}
+
+- (BOOL) isInTime:(NSDate*)startTime endTime:(NSDate*)endTime {
+
+    NSDate *now;
+    if (@available(iOS 13.0, *)) {
+        now = [NSDate now];
+    } else {
+        // Fallback on earlier versions
+        now = [NSDate date];
+    }
+    
+    NSComparisonResult result = [startTime compare:now];
+    if(result == NSOrderedDescending) {
+        //The patient arrived too early!");
+        return false;
+    }
+    else
+    {
+        //The patient arrived after the startTime!");
+        result = [endTime compare:now];
+        if ( result == NSOrderedDescending)  {
+               //The patient arrived in time
+               return true;
+        } else {
+            return false;
+        }
+    }
+}
+
 
 - (void)locationManager:(CLLocationManager *)manager didStartMonitoringForRegion:(CLRegion *)region {
     
@@ -492,8 +584,6 @@
         NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
         NSString *deepLink = [userDefaults objectForKey:@"deepLink"];
         
-        NSLog(@">>> Deeplink checked: %@ <<<", deepLink);
-        
         [userDefaults removeObjectForKey:@"deepLink"];
         
         if (deepLink.length == 0 || [deepLink isEqualToString:@""]) {
@@ -506,30 +596,82 @@
 
 - (void) setNotificationMessage:(CDVInvokedUrlCommand*)command {
     
-    if (!command.arguments[0] || !command.arguments[1] || !command.arguments[2] || !command.arguments[3] || !command.arguments[4] || !command.arguments[5]) {
+    if (!command.arguments[0] || !command.arguments[1] || !command.arguments[2] || !command.arguments[3] || !command.arguments[4] || !command.arguments[5] || !command.arguments[6] || !command.arguments[7]) {
         
     } else {
         
         NSString *beaconName = command.arguments[0];
         NSString *deepLinkID = command.arguments[1];
-        NSString *enterMessageTitle = command.arguments[2];
-        NSString *enterMessage = command.arguments[3];
-        NSString *exitMessageTitle = command.arguments[4];
-        NSString *exitMessage = command.arguments[5];
+        NSString *dateTimeStartString = command.arguments[2]; //"dd.MM.yyyy-HH:mm"
+        NSString *dateTimeEndString = command.arguments[3]; //"dd.MM.yyyy-HH:mm"
+        NSString *enterMessageTitle = command.arguments[4];
+        NSString *enterMessage = command.arguments[5];
+        NSString *exitMessageTitle = command.arguments[6];
+        NSString *exitMessage = command.arguments[7];
         
-        NSDictionary* beaconDict = @{ @"beaconName" : beaconName, @"deepLinkID" : deepLinkID, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
+        //Formatting the date & time
+        NSDate *dateTimeStart = [self dateFromString:dateTimeStartString];
+        NSDate *dateTimeEnd = [self dateFromString:dateTimeEndString];
         
-        [[NSUserDefaults standardUserDefaults] setObject:beaconDict forKey:beaconName];
+        NSDictionary* newBeaconDict = @{ @"beaconName" : beaconName, @"deepLinkID" : deepLinkID, @"dateTimeStart" : dateTimeStart, @"dateTimeEnd" : dateTimeEnd, @"enterMessage" : enterMessage, @"enterMessageTitle" : enterMessageTitle, @"exitMessage" : exitMessage, @"exitMessageTitle" : exitMessageTitle};
+        
+        //Retrieves previously saved notifications array from NSUserDefaults and updates it
+        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+        
+        //Checks if the Array exists in UserDefaults
+        if ([userDefaults objectForKey:beaconName] != nil) {
+            NSArray *beaconArray = [userDefaults objectForKey:beaconName];
+            NSMutableArray *newBeaconArray = [NSMutableArray arrayWithArray:beaconArray];
+            
+            //Checking for older notifications and removing them
+            if (beaconArray.count > 0) {
+                for (int i = 0; i < beaconArray.count; i++) {
+                    NSDictionary * notificationsDict = beaconArray[i];
+                    if (notificationsDict != nil) {
+                        //Checks if it's an old notification to be discarded
+                        NSDate *arrayDateTimeEnd = notificationsDict[@"dateTimeEnd"];
+                        NSDate *now;
+                        if (@available(iOS 13.0, *)) {
+                            now = [NSDate now];
+                        } else {
+                            // Fallback on earlier versions
+                            now = [NSDate date];
+                        }
+                        NSComparisonResult result = [arrayDateTimeEnd compare:now];
+                        if(result == NSOrderedAscending){
+                            NSLog(@"Vou remover um item do array!");
+                            [newBeaconArray removeObjectAtIndex:i];
+                        }
+                    }
+                }
+            }
+            //Adding the new notification to the array
+            [newBeaconArray addObject:newBeaconDict];
+            
+            //Saving the new updated array
+            [[NSUserDefaults standardUserDefaults] setObject:newBeaconArray forKey:beaconName];
+            
+        } else {
+            //Creates a new Notifications array and adds the new notification to it
+            NSMutableArray *beaconArray = [NSMutableArray arrayWithObjects:newBeaconDict,nil];
+            
+            //Saving the new updated array
+            [[NSUserDefaults standardUserDefaults] setObject:beaconArray forKey:beaconName];
+        }
     }
 }
 
 - (void) removeCustomNotificationsForBeacon:(CDVInvokedUrlCommand*)command {
-     if (!command.arguments[0]) {
-           
-       } else {
+     if (command.arguments[0]) {
            NSString *beaconName = command.arguments[0];
            [[NSUserDefaults standardUserDefaults] removeObjectForKey:beaconName];
        }
+}
+
+-(NSDate *) dateFromString:(NSString *)dateString {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"dd.MM.yyyy-HH:mm"];
+    return [formatter dateFromString:dateString];
 }
 
 - (void) requestAlwaysAuthorization:(CDVInvokedUrlCommand*)command {

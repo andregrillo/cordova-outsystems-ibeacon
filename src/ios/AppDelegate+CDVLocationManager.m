@@ -61,8 +61,6 @@ BOOL isGrantedNotificationAccess;
         }
     }];
     center.delegate = self;
-//    [self showNotification];
-
     
     
     BOOL launchedWithoutOptions = launchOptions == nil;
@@ -91,25 +89,6 @@ BOOL isGrantedNotificationAccess;
         
     completionHandler();
     
-}
-
-
-- (void)showNotification{
-    if (isGrantedNotificationAccess) {
-        UNUserNotificationCenter * center = [UNUserNotificationCenter currentNotificationCenter];
-        UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
-        content.body = @"Welcome!";
-        content.sound = [UNNotificationSound defaultSound];
-        
-        //Setting the notification trigger
-        UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:10 repeats:NO];
-        
-        //Setting request for notification
-        UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:@"OSLocalNotification" content:content trigger:trigger];
-        
-        //Adds notification to current notification center
-        [center addNotificationRequest:request withCompletionHandler:nil];
-    }
 }
 
 - (UIBackgroundTaskIdentifier) backgroundTaskIdentifier {
