@@ -172,13 +172,13 @@ If the notifications were not triggered, and became outdated, they will be remov
 Use the same identifier when the beacon was created.
 Use the word "disabled" in the EnterMessage or ExitMessage strings.
 
-Disabling the "Enter" notifications only:
+Disabling the "Enter" notifications (only "exit" messages will be sent):
 ```
 cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "JustLeft", "19.09.2020-14:00", "19.09.2020-14:45", "", "disabled", "Goodbye!", "Thank you for your preference!"]);
 
 ```
 
-Disabling the "Exit" notifications only:
+Disabling the "Exit" notifications (only "enter" messages will be sent):
 ```
 cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "JustArrived", "19.09.2020-14:00", "19.09.2020-14:45", "Hello!", "Welcome to our great Hospital!", "", "disabled"]);
 
