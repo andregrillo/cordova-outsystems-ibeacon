@@ -161,38 +161,30 @@ The Date and Time string must be at the following format: "dd.MM.yyyy-HH:mm"
 If no custom notification is set, the app will display a simple "Welcome" and "Goodbye" notification text.
 Titles are optional. Just leave the double quotes empty if you want it to be hidden.
 ```
-cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "JustArrived", "19.09.2020-14:00", "19.09.2020-14:45", Hello!", "Welcome to our great Hospital!", "Goodbye!", "Thank you for your preference!"]);
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "JustArrived", "19.09.2020-14:00", "19.09.2020-14:45", "Hello!", "Welcome to our great Hospital!", "Goodbye!", "Thank you for your preference!"]);
 
 ```
 Notifications will be deleted from the local repository as soon as they are sent.
 If the notifications were not triggered, and became outdated, they will be removed from the local repository as soon as new valid notifications are set.
  
- 
+
 #### Disable custom notifications for a single monitored iBeacon
 Use the same identifier when the beacon was created.
-Use the word "disabled" in the EnterMessage and/or ExitMessage strings.
-For enabling the custom messages again, you just need to set it up (see "Custom notifications for a single monitored iBeacon" section above).
+Use the word "disabled" in the EnterMessage or ExitMessage strings.
 
 Disabling the "Enter" notifications only:
 ```
-cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "disabled", "Goodbye!", "Thank you for your preference!"]);
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "JustArrived", "19.09.2020-14:00", "19.09.2020-14:45", "", "disabled", "Goodbye!", "Thank you for your preference!"]);
 
 ```
 
 Disabling the "Exit" notifications only:
 ```
-cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "Hello!", "Welcome to our great Hospital!", "", "disabled"]);
+cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "JustArrived", "19.09.2020-14:00", "19.09.2020-14:45", "Hello!", "Welcome to our great Hospital!", "", "disabled"]);
 
 ```
-
-Disabling both "Enter" and Exit" notifications:
-```
-cordova.plugins.locationManager.setNotificationMessage(["beaconOnTheMacBooksShelf", "", "disabled", "", "disabled"]);
-
-```
-
  
-#### Remove custom notifications for a single monitored iBeacon
+#### Removing all custom notifications for a single monitored iBeacon
 Use the same identifier when the beacon was created. 
 If no custom notification is set, the app will display a simple "Welcome" and "Goodbye" notification text.
 ```
@@ -200,9 +192,9 @@ cordova.plugins.locationManager.removeCustomNotificationsForBeacon(["beaconOnThe
 
 ```
 
-#### Verify the deep link string 
+#### Verifying the deep link string, triggered by a notifications click
 Method to be called in OutSystems app on OnApplicationReady and OnApplicationResume.
-Deep link info is removed from app after being read.
+Deep link info is removed from app's local repository after being read by this method.
 ```
 cordova.plugins.locationManager.checkDeepLink("").then(function(result) {
   console.log(result);
