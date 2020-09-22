@@ -1,4 +1,3 @@
-cordova.define("com.unarin.cordova.beacon.LocationManager", function(require, exports, module) {
 /*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -584,6 +583,3 @@ locationManager.Delegate = Delegate;
 
 module.exports.LocationManager = LocationManager;
 module.exports.locationManager = locationManager;
-
-
-});
