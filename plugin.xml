@@ -82,14 +82,15 @@
                 <string>remote-notification</string>-->
             </array>
         </config-file>
-
+        
+        <!-- 
         <config-file target="*-Info.plist" parent="BGTaskSchedulerPermittedIdentifiers">
             <array>
-                <string>pt.lusiadas.lusiadas</string>
+                <string>com.yourCompanyName.appName</string>
             </array>
         </config-file>
         
-        <!-- 
+        
         <config-file target="*-Info.plist" parent="UIApplicationExitsOnSuspend">
             <false/>
         </config-file>
