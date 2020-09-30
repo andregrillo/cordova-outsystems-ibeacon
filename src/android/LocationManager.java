@@ -23,6 +23,9 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -31,11 +34,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.RemoteException;
+import android.renderscript.RenderScript;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
@@ -46,6 +53,10 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.BeaconTransmitter;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
+
+import com.google.gson.JsonArray;
+import com.outsystems.expertsmobiledev.IbeaconLusiadasSample.MainActivity;
+import com.outsystems.expertsmobiledev.IbeaconLusiadasSample.R;
 
 import org.altbeacon.beacon.BleNotAvailableException;
 import org.altbeacon.beacon.Identifier;
@@ -67,8 +78,16 @@ import org.json.JSONObject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.InvalidKeyException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -79,21 +98,26 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String FOREGROUND_BETWEEN_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundBetweenScanPeriod";
     private static final String FOREGROUND_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundScanPeriod";
-    private static final int DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
+    private static final int DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 5000;
     private static final String SAMPLE_EXPIRATION_MILLISECOND = "com.unarin.cordova.beacon.android.altbeacon.SampleExpirationMilliseconds";
     private static final int DEFAULT_SAMPLE_EXPIRATION_MILLISECOND = 20000;
     private static final String ENABLE_ARMA_FILTER_NAME = "com.unarin.cordova.beacon.android.altbeacon.EnableArmaFilter";
     private static final boolean DEFAULT_ENABLE_ARMA_FILTER = false;
     private static final String REQUEST_BT_PERMISSION_NAME = "com.unarin.cordova.beacon.android.altbeacon.RequestBtPermission";
     private static final boolean DEFAULT_REQUEST_BT_PERMISSION = true;
-    private static final int DEFAULT_FOREGROUND_SCAN_PERIOD = 1100;
+    private static final int DEFAULT_FOREGROUND_SCAN_PERIOD = 1000;
     private static int CDV_LOCATION_MANAGER_DOM_DELEGATE_TIMEOUT = 30;
     private static final int BUILD_VERSION_CODES_M = 23;
+    private static final String CHANNEL_ID = "com.unarin.cordova.beacon.notifications";
+    private static final String CHANNEL_NAME = "Beacon Notifications";
+    private static final String CHANNEL_DESCRIPTION = "Notifications that appear when you enter or exit a designated location";
 
     private BeaconTransmitter beaconTransmitter;
     private BeaconManager iBeaconManager;
     private BlockingQueue<Runnable> queue;
     private PausableThreadPoolExecutor threadPoolExecutor;
+
+    private SharedPreferencesHelper sharedPrefHelper;
 
     private boolean debugEnabled = true;
     private IBeaconServiceNotifier beaconServiceNotifier;
@@ -163,6 +187,9 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             initBluetoothAdapter();
         }
+
+        sharedPrefHelper = new SharedPreferencesHelper("NotificationsBD",getApplicationContext());
+
         //TODO AddObserver when page loaded
 
         final boolean requestPermission = this.preferences.getBoolean(
@@ -170,6 +197,15 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
            
         if(requestPermission)
               tryToRequestMarshmallowLocationPermission();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription(CHANNEL_DESCRIPTION);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getApplicationContext().getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     /**
@@ -217,6 +253,12 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
             stopMonitoringForRegion(args.optJSONObject(0), callbackContext);
         } else if (action.equals("startRangingBeaconsInRegion")) {
             startRangingBeaconsInRegion(args.optJSONObject(0), callbackContext);
+        } else if (action.equals("setNotificationMessage")) {
+            setNotificationMessage(args,callbackContext);
+        } else if (action.equals("removeCustomNotificationsForBeacon")) {
+            removeCustomNotificationsForBeacon(args.getString(0),callbackContext);
+        } else if (action.equals("checkDeepLink")) {
+            getDeepLink(callbackContext);
         } else if (action.equals("stopRangingBeaconsInRegion")) {
             stopRangingBeaconsInRegion(args.optJSONObject(0), callbackContext);
         } else if (action.equals("isRangingAvailable")) {
@@ -504,12 +546,14 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         iBeaconManager.setMonitorNotifier(new MonitorNotifier() {
             @Override
             public void didEnterRegion(Region region) {
+                displayNotificationFor(region.getUniqueId(),1);
                 debugLog("didEnterRegion INSIDE for " + region.getUniqueId());
                 dispatchMonitorState("didEnterRegion", MonitorNotifier.INSIDE, region, callbackContext);
             }
 
             @Override
             public void didExitRegion(Region region) {
+                displayNotificationFor(region.getUniqueId(),-1);
                 debugLog("didExitRegion OUTSIDE for " + region.getUniqueId());
                 dispatchMonitorState("didExitRegion", MonitorNotifier.OUTSIDE, region, callbackContext);
             }
@@ -621,6 +665,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
                             JSONObject data = new JSONObject();
                             data.put("eventType", "didStartMonitoringForRegion");
                             data.put("region", mapOfRegion(region));
+                            displayNotificationFor(region.getUniqueId(),1);
 
                             debugLog("didStartMonitoringForRegion: " + data.toString());
 
@@ -894,6 +939,118 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
             }
         });
 
+    }
+
+    private void removeCustomNotificationsForBeacon(String beaconID, CallbackContext callbackContext) {
+        _handleCallSafely(callbackContext, () -> {
+            Boolean success = sharedPrefHelper.removeNotifications(beaconID);
+            if(success){
+                return new PluginResult(PluginResult.Status.OK);
+            }else{
+                return new PluginResult(PluginResult.Status.ERROR,"Could not remove Notifications from preferences");
+            }
+        });
+    }
+
+    private void setNotificationMessage(JSONArray arguments, CallbackContext callbackContext) {
+        _handleCallSafely(callbackContext, () -> {
+            Boolean success = sharedPrefHelper.addNotification(arguments);
+            if (success) {
+                return new PluginResult(PluginResult.Status.OK);
+            }else{
+                return new PluginResult(PluginResult.Status.ERROR,"Could not add Notification to Notification List for the beacon specified");
+            }
+        });
+    }
+
+    private void getDeepLink(CallbackContext callbackContext){
+        _handleCallSafely(callbackContext, () -> {
+            String deepLink = sharedPrefHelper.getDeepLink();
+            sharedPrefHelper.setDeepLink("");
+            if (!deepLink.equals("")) {
+                return new PluginResult(PluginResult.Status.OK,deepLink);
+            }else{
+                return new PluginResult(PluginResult.Status.ERROR,"Could not retrieve Deeplink or it was empty!");
+            }
+        });
+    }
+
+
+    private Boolean displayNotificationFor(String beaconId,int state){
+        if(sharedPrefHelper == null){
+            sharedPrefHelper = new SharedPreferencesHelper("NotificationsBD",getApplicationContext());
+        }
+        JSONArray notifications = sharedPrefHelper.getNotifications(beaconId);
+        try {
+            Date now = new Date();
+            List<Integer> toRemove = new ArrayList<>();
+            for (int i = 0; i < notifications.length(); i++) {
+                JSONArray notification = notifications.getJSONArray(i);
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy-HH:mm");
+                    Date start = sdf.parse(notification.getString(2));
+                    Date end = sdf.parse(notification.getString(3));
+
+                    Boolean sent = false;
+                    if(end.after(now)) {
+                        if (start.before(now)) {
+                            if (state > 0) {
+                                //Enter
+                                sent = sendNotification(notification.getString(4), notification.getString(5), notification.getString(1));
+                            } else {
+                                sent = sendNotification(notification.getString(6), notification.getString(7), notification.getString(1));
+                                //Exit
+                            }
+                        }
+                    }else{
+                        sent = true;
+                    }
+
+                    if (sent){
+                        toRemove.add(i-toRemove.size());
+                    }
+                }catch (ParseException | NullPointerException e){
+                    debugLog(e.getMessage());
+                }
+            }
+            for (int id : toRemove){
+                notifications.remove(id);
+            }
+            sharedPrefHelper.setNotifications(beaconId,notifications);
+            return true;
+        }catch(JSONException e){
+            return false;
+        }
+    }
+
+    private Boolean sendNotification(String title, String message, String deepLink){
+        if (message.equals("disabled")){
+            return false;
+        }
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("DeepLinkID",deepLink);
+        PendingIntent notifyPendingIntent = PendingIntent.getActivity(
+                getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(),CHANNEL_ID)
+                .setSmallIcon(R.mipmap.ic_launcher) // notification icon
+                //.setExtras()//Add DeeplinkID
+                .setContentIntent(notifyPendingIntent)
+                .setAutoCancel(true); // clear notification when clicked
+        if(!title.equals("")){
+            mBuilder.setContentTitle(title);
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            mBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        }
+        mBuilder.setContentText(message);
+        mBuilder.setStyle(new NotificationCompat.BigTextStyle()
+                .bigText(message));
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(new Random().nextInt(100), mBuilder.build());//Figure out what is notificationID
+        return true;
     }
 
     private void startRangingBeaconsInRegion(final JSONObject arguments, final CallbackContext callbackContext) {
