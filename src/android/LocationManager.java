@@ -37,6 +37,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -112,6 +113,24 @@ public class LocationManager extends CordovaPlugin{
 
     CallbackContext delegateCallbackId;
 
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null){
+            Bundle extras = intent.getExtras();
+            if (extras != null){
+                if(extras.containsKey("DeepLinkID"))
+                {
+                    // extract the extra-data in the Notification
+                    String deepLinkID = extras.getString("DeepLinkID");
+                    if(sharedPrefHelper == null){
+                        sharedPrefHelper = new SharedPreferencesHelper("NotificationsBD",cordova.getActivity().getApplicationContext());
+                    }
+                    sharedPrefHelper.setDeepLink(deepLinkID);
+                }
+            }
+        }
+    }
 
     /**
      * Constructor.
@@ -239,7 +258,7 @@ public class LocationManager extends CordovaPlugin{
             setNotificationMessage(args,callbackContext);
         } else if (action.equals("removeCustomNotificationsForBeacon")) {
             removeCustomNotificationsForBeacon(args.getString(0),callbackContext);
-        } else if (action.equals("checkDeepLink")) {
+        } else if (action.equals("getDeepLink")) {
             getDeepLink(callbackContext);
         } else if (action.equals("stopRangingBeaconsInRegion")) {
             stopRangingBeaconsInRegion(args.optJSONObject(0), callbackContext);
@@ -313,16 +332,18 @@ public class LocationManager extends CordovaPlugin{
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
             }
-            for (String permission : permissions){
+            for (int i = 0;i<permissions.size();i++){
                 final Integer permissionCheckResult = (Integer) checkSelfPermissionMethod.invoke(
-                        activity, permission);
+                        activity, permissions.get(i));
 
-                Log.i(TAG, "Permission check result for "+permission+": " +
+                Log.i(TAG, "Permission check result for "+permissions.get(i)+": " +
                         String.valueOf(permissionCheckResult));
 
                 if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                    Log.i(TAG, "Permission for " + permission +" has already been granted.");
-                    permissions.remove(permission);
+                    Log.i(TAG, "Permission for " + permissions.get(i) +" has already been granted.");
+                    permissions.remove(i);
+                    i--;
+
                 }
             }
 
@@ -336,6 +357,9 @@ public class LocationManager extends CordovaPlugin{
                         "supported version of Android.");
                 return;
             }
+            if (permissions.size()<1){
+                return;
+            }
 
             final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle("This app needs location access");
@@ -345,7 +369,13 @@ public class LocationManager extends CordovaPlugin{
                 @SuppressLint("NewApi")
                 @Override
                 public void onDismiss(final DialogInterface dialog) {
-                    String[] permissionsStrings = (String[]) permissions.toArray();
+
+                    String[] permissionsStrings = new String[permissions.size()];
+                    int i = 0;
+                    for (String permission : permissions){
+                        permissionsStrings[i] = permission;
+                        i++;
+                    }
 
 
                     try {

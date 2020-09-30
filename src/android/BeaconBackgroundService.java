@@ -66,6 +66,7 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
 
     private boolean debugEnabled = true;
     private IBeaconServiceNotifier beaconServiceNotifier;
+    private boolean bound = false;
 
     public boolean checkAvailability() {
         return iBeaconManager.checkAvailability();
@@ -87,9 +88,11 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
             iBeaconManager = BeaconManager.getInstanceForApplication(this);
             iBeaconManager.setForegroundBetweenScanPeriod(foregroundBetweenScanPeriod);
             iBeaconManager.setForegroundScanPeriod(foregroundScanPeriod);
+            iBeaconManager.setBackgroundBetweenScanPeriod(foregroundBetweenScanPeriod*2);
+            iBeaconManager.setBackgroundScanPeriod(foregroundScanPeriod);
 
             iBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
-            backgroundPowerSaver = new BackgroundPowerSaver(this);
+            //backgroundPowerSaver = new BackgroundPowerSaver(this);
             iBeaconManager.setDebug(true);
 
             if (enableArmaFilter) {
@@ -192,24 +195,6 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
             Log.e(TAG, "'startRangingBeaconsInRegion' exception " + e.getCause());
             return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
         }
-    }
-
-    public void stopRangingRegion(String identifier) {
-
-        if (rangingRegions.containsKey(identifier)) {
-
-            Region region = rangingRegions.get(identifier);
-
-            rangingRegions.remove(identifier);
-
-            try {
-                iBeaconManager.stopRangingBeaconsInRegion(region);
-            } catch (RemoteException e) {
-
-            }
-
-        }
-
     }
 
     public PluginResult stopRangingBeaconsInRegion(final Region region) {
@@ -484,7 +469,8 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
                             //send and keep reference to callback
                             PluginResult result = new PluginResult(PluginResult.Status.OK, data);
                             result.setKeepCallback(true);
-                            callbackContext.sendPluginResult(result);
+                            if (bound)
+                                callbackContext.sendPluginResult(result);
 
                         } catch (Exception e) {
                             Log.e(TAG, "'monitoringDidFailForRegion' exception " + e.getCause());
@@ -515,7 +501,8 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
                     //send and keep reference to callback
                     PluginResult result = new PluginResult(PluginResult.Status.OK, data);
                     result.setKeepCallback(true);
-                    callbackContext.sendPluginResult(result);
+                    if(bound)
+                        callbackContext.sendPluginResult(result);
 
                 } catch (Exception e) {
                     Log.e(TAG, "'rangingBeaconsDidFailForRegion' exception " + e.getCause());
@@ -551,7 +538,8 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
                     //send and keep reference to callback
                     PluginResult result = new PluginResult(PluginResult.Status.OK, data);
                     result.setKeepCallback(true);
-                    callbackContext.sendPluginResult(result);
+                    if(bound)
+                        callbackContext.sendPluginResult(result);
 
                 } catch (Exception e) {
                     Log.e(TAG, "'startMonitoringForRegion' exception " + e.getCause());
@@ -784,12 +772,14 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
     @Override
     public void unbindService(ServiceConnection serviceConnection) {
         debugLog("Unbind from IBeacon service");
+        bound = false;
         this.getApplicationContext().unbindService(serviceConnection);
     }
 
     @Override
     public boolean bindService(Intent intent, ServiceConnection serviceConnection, int i) {
         debugLog("Bind to IBeacon service");
+        bound = true;
         return this.context.getApplicationContext().bindService(intent, serviceConnection, i);
     }
 

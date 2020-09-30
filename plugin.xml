@@ -129,8 +129,6 @@
                 android:name="com.unarin.cordova.beacon.BeaconBackgroundService" />
         </config-file>
 
-        <hook type="after_install" src="hooks/android/addOnNewIntent.js" />
-
         <source-file src="src/android/LocationManager.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/IBeaconServiceNotifier.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/ILocationManagerCommand.java" target-dir="src/com/unarin/cordova/beacon" />
