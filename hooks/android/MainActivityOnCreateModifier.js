@@ -20,7 +20,7 @@ module.exports = function (context) {
 
 
     var rawConfig = fs.readFileSync("config.xml", 'ascii');
-    var match = /^<widget.+id="([\S]+)".+?>$/gm.exec(rawConfig);
+    var match = /^<widget.+ id="([\S]+)".+?>$/gm.exec(rawConfig);
     if(!match || match.length != 2){
         throw new Error("id parse failed");
     }
