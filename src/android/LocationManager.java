@@ -40,6 +40,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
@@ -68,6 +69,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import com.outsystems.expertsmobiledev.IbeaconLusiadasSample.MainActivity;
 import com.unarin.cordova.beacon.BeaconBackgroundService.LocalBinder;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -131,6 +134,7 @@ public class LocationManager extends CordovaPlugin{
             }
         }
     }
+
 
     /**
      * Constructor.
@@ -212,7 +216,7 @@ public class LocationManager extends CordovaPlugin{
                 REQUEST_BT_PERMISSION_NAME, DEFAULT_REQUEST_BT_PERMISSION);
            
         if(requestPermission) {
-            tryToRequestMarshmallowLocationPermission(true);
+            tryToRequestMarshmallowLocationPermission();
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
@@ -304,7 +308,7 @@ public class LocationManager extends CordovaPlugin{
 
 
     @TargetApi(BUILD_VERSION_CODES_M)
-    private void tryToRequestMarshmallowLocationPermission(Boolean useFineLocation) {
+    private void tryToRequestMarshmallowLocationPermission() {
 
         if (Build.VERSION.SDK_INT < BUILD_VERSION_CODES_M) {
             Log.i(TAG, "tryToRequestMarshmallowLocationPermission() skipping because API code is " +
@@ -325,10 +329,7 @@ public class LocationManager extends CordovaPlugin{
 
         try {
             List<String> permissions = new ArrayList<>();
-            permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-            if(useFineLocation) {
-                permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
-            }
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
             }
@@ -681,7 +682,9 @@ public class LocationManager extends CordovaPlugin{
             Region region = null;
             try {
                 region = parseRegion(arguments);
-                return beaconBkgService.startMonitoringForRegion(region);
+
+                BeaconReferenceApplication application = ((BeaconReferenceApplication) cordova.getActivity().getApplicationContext());
+                return application.addRegionToMonitor(region);
             } catch (InvalidKeyException | JSONException e) {
                 Log.e(TAG, "'startMonitoringForRegion' service error: " + e.getCause());
                 beaconServiceNotifier.monitoringDidFailForRegion(region, e);
@@ -695,7 +698,8 @@ public class LocationManager extends CordovaPlugin{
             Region region = null;
             try {
                 region = parseRegion(arguments);
-                return beaconBkgService.stopMonitoringForRegion(region);
+                BeaconReferenceApplication application = ((BeaconReferenceApplication) cordova.getActivity().getApplicationContext());
+                return application.addRegionToMonitor(region);
             } catch (InvalidKeyException | JSONException e) {
                 Log.e(TAG, "'stopMonitoringForRegion' service error: " + e.getCause());
                 beaconServiceNotifier.monitoringDidFailForRegion(region, e);
@@ -1347,6 +1351,44 @@ public class LocationManager extends CordovaPlugin{
     private void debugWarn(String message) {
         if (debugEnabled) {
             Log.w(TAG, message);
+        }
+    }
+
+    @Override
+    public void onResume(boolean multitasking) {
+        super.onResume(multitasking);
+        BeaconReferenceApplication application = ((BeaconReferenceApplication) cordova.getActivity().getApplicationContext());
+        application.setMainActivity((MainActivity) cordova.getActivity());
+    }
+
+    @Override
+    public void onPause(boolean multitasking) {
+        super.onPause(multitasking);
+        ((BeaconReferenceApplication) cordova.getActivity().getApplicationContext()).setMainActivity(null);
+    }
+    @Override
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+        Boolean notGranted = false;
+        for(int i = 0;i<permissions.length;i++){
+            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, permissions[i]+" granted");
+            } else {
+                notGranted = true;
+            }
+        }
+        if (notGranted) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getActivity());
+            builder.setTitle("Functionality limited");
+            builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons at all times.");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                }
+
+            });
+            builder.show();
         }
     }
 }

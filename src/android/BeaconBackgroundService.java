@@ -121,60 +121,6 @@ public class BeaconBackgroundService extends Service implements BeaconConsumer {
 
     /////////////////////////Operation Methods//////////////////////////////////////
 
-    public PluginResult startMonitoringForRegion(final Region region) {
-        try {
-            monitoringRegions.put(region.getUniqueId(), region);
-            iBeaconManager.startMonitoringBeaconsInRegion(region);
-            if(iBeaconManager.isBackgroundModeUninitialized()) {
-                iBeaconManager.setBackgroundMode(true);
-            }
-
-            PluginResult result = new PluginResult(PluginResult.Status.OK);
-            result.setKeepCallback(true);
-            beaconServiceNotifier.didStartMonitoringForRegion(region);
-            return result;
-
-        } catch (RemoteException e) {
-            Log.e(TAG, "'startMonitoringForRegion' service error: " + e.getCause());
-            beaconServiceNotifier.monitoringDidFailForRegion(region, e);
-            return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
-        } catch (Exception e) {
-            Log.e(TAG, "'startMonitoringForRegion' exception " + e.getCause());
-            beaconServiceNotifier.monitoringDidFailForRegion(region, e);
-            return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
-        }
-    }
-
-    public PluginResult stopMonitoringForRegion(final Region region) {
-        if (monitoringRegions.containsKey(region.getUniqueId())) {
-
-            Region retrievedRegion = monitoringRegions.get(region.getUniqueId());
-            if (retrievedRegion == null){
-                retrievedRegion = region;
-            }
-
-            monitoringRegions.remove(region.getUniqueId());
-
-            try {
-                iBeaconManager.stopMonitoringBeaconsInRegion(retrievedRegion);
-
-                PluginResult result = new PluginResult(PluginResult.Status.OK);
-                result.setKeepCallback(true);
-                return result;
-
-            } catch (RemoteException e) {
-                Log.e(TAG, "'stopMonitoringForRegion' service error: " + e.getCause());
-                return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
-            } catch (Exception e) {
-                Log.e(TAG, "'stopMonitoringForRegion' exception " + e.getCause());
-                return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
-            }
-        }else{
-            return new PluginResult(PluginResult.Status.ERROR, "No Region with that id is being monitored!");
-        }
-
-    }
-
     public PluginResult startRangingBeaconsInRegion(final Region region) {
         try {
             rangingRegions.put(region.getUniqueId(), region);
