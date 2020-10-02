@@ -119,12 +119,21 @@
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
 			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+            <uses-permission android:name="android.permission.BLUETOOTH" />
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
         </config-file>
+
+        <hook type="after_plugin_install" src="hooks/android/MainActivityOnCreateModifier.js" />
+        <hook type="after_plugin_install" src="hooks/android/addApplicationName.js" />
 
         <source-file src="src/android/LocationManager.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/IBeaconServiceNotifier.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/ILocationManagerCommand.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/PausableThreadPoolExecutor.java" target-dir="src/com/unarin/cordova/beacon" />
+        <source-file src="src/android/SharedPreferencesHelper.java" target-dir="src/com/unarin/cordova/beacon" />
+        <source-file src="src/android/BeaconReferenceApplication.java" target-dir="src/com/unarin/cordova/beacon" />
 
         <framework src="src/android/cordova-plugin-ibeacon.gradle" custom="true" type="gradleReference" />
         <framework src="com.android.support:support-core-utils:26+" />

@@ -26,10 +26,10 @@
 
  * Ranging
  * Monitoring
+* Region Monitoring (or geo fencing), works in all app states.(On android this requires a foreground service as such you have an always on notification saying "scaning for beacons")
 
 #### Features exclusive to iOS
 
- * Region Monitoring (or geo fencing), works in all app states. 
  * Advertising device as an iBeacon
 
 #### Features exclusive to Android
@@ -84,6 +84,15 @@ function createBeacon() {
     return beaconRegion;   
 } 
 ```
+
+#### Start monitoring(Android only)
+```
+//By default you don't need to run this unless you run the disableMonitor method
+cordova.plugins.locationManager.enableMonitor()
+	.fail(function(e) { console.error(e); })
+	.done();
+
+```
  
 #### Start monitoring a single iBeacon
 ```
@@ -136,7 +145,13 @@ cordova.plugins.locationManager.startMonitoringForRegion(beaconRegion)
 	.done();
 
 ```
- 
+#### Stop monitoring (Android only)
+```
+cordova.plugins.locationManager.disableMonitor()
+	.fail(function(e) { console.error(e); })
+	.done();
+
+```
 
 #### Stop monitoring a single iBeacon
 ```
