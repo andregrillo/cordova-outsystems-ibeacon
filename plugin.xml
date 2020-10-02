@@ -77,14 +77,24 @@
             <array>
                 <string>bluetooth-central</string>
                 <string>location</string>
-                <string>processing</string>
-                <!-- <string>external-accessory</string>
+                <!-- <string>processing</string>
+                <string>external-accessory</string>
                 <string>remote-notification</string>-->
             </array>
         </config-file>
+        
+        <!-- 
+        <config-file target="*-Info.plist" parent="BGTaskSchedulerPermittedIdentifiers">
+            <array>
+                <string>com.yourCompanyName.appName</string>
+            </array>
+        </config-file>
+        
+        
         <config-file target="*-Info.plist" parent="UIApplicationExitsOnSuspend">
             <false/>
         </config-file>
+        -->
 
         <header-file src="src/ios/CDVLocationManager.h"/>
         <source-file src="src/ios/CDVLocationManager.m"/>
