@@ -300,6 +300,28 @@ LocationManager.prototype.stopMonitoringForRegion = function(region) {
 };
 
 /**
+ * This enables the foreground service that monitors for beacons and activates
+ * the application when one is found
+ *
+ * @return {Q.Promise} Returns a promise which is resolved as soon as the
+ * native layer acknowledged the dispatch of the request to stop monitoring.
+ */
+LocationManager.prototype.enableMonitor = function() {
+	return this._promisedExec('enableMonitoring', [], []);
+};
+
+/**
+ * This disables the foreground service that monitors for beacons and activates
+ * the application when one is found
+ *
+ * @return {Q.Promise} Returns a promise which is resolved as soon as the
+ * native layer acknowledged the dispatch of the request to stop monitoring.
+ */
+LocationManager.prototype.disableMonitor = function() {
+	return this._promisedExec('disableMonitoring', [], []);
+};
+
+/**
  * Request state the for specified region. When result is ready
  * didDetermineStateForRegion is triggered. This can be any region, 
  * also those which is not currently monitored. 

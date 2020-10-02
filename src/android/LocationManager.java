@@ -132,6 +132,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
     private BeaconTransmitter beaconTransmitter;
 
+    private Boolean monitorEnabled = true;
+
     @Override
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -311,11 +313,16 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
             enableBluetooth(callbackContext);
         } else if (action.equals("disableBluetooth")) {
             disableBluetooth(callbackContext);
+        } else if (action.equals("disableMonitoring")) {
+            enableMonitor(callbackContext);
+        } else if (action.equals("enableMonitoring")) {
+            disableMonitor(callbackContext);
         } else {
             return false;
         }
         return true;
     }
+
 
     ///////////////// SETUP AND VALIDATION /////////////////////////////////
 
@@ -754,6 +761,9 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
             Region region = null;
             try {
+                if(!monitorEnabled){
+                    return new PluginResult(PluginResult.Status.ERROR, "Monitor is disabled");
+                }
                 region = parseRegion(arguments);
                 PluginResult result;
                 BeaconReferenceApplication application = ((BeaconReferenceApplication) cordova.getActivity().getApplicationContext());
@@ -782,6 +792,9 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
             try {
                 region = parseRegion(arguments);
                 if (monitoringRegions.containsKey(region.getUniqueId())) {
+                    if(!monitorEnabled){
+                        return new PluginResult(PluginResult.Status.ERROR, "Monitor is disabled");
+                    }
 
                     Region retrievedRegion = monitoringRegions.get(region.getUniqueId());
                     if (retrievedRegion == null){
@@ -813,6 +826,36 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
             }
         });
     }
+
+
+    private void enableMonitor(CallbackContext callbackContext) {
+        _handleCallSafely(callbackContext, () -> {
+
+            PluginResult result;
+            BeaconReferenceApplication application = ((BeaconReferenceApplication) cordova.getActivity().getApplicationContext());
+            application.enableMonitoring();
+            monitorEnabled= true;
+
+            result = new PluginResult(PluginResult.Status.OK);
+            result.setKeepCallback(true);
+            return result;
+        });
+    }
+
+    private void disableMonitor(CallbackContext callbackContext) {
+        _handleCallSafely(callbackContext, () -> {
+
+            PluginResult result;
+            BeaconReferenceApplication application = ((BeaconReferenceApplication) cordova.getActivity().getApplicationContext());
+            application.disableMonitoring();
+            monitorEnabled= false;
+
+            result = new PluginResult(PluginResult.Status.OK);
+            result.setKeepCallback(true);
+            return result;
+        });
+    }
+
     private void startRangingBeaconsInRegion(JSONObject arguments, CallbackContext callbackContext) {
         _handleCallSafely(callbackContext, () -> {
 
