@@ -114,20 +114,6 @@
             <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
             <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
         </config-file>
-        <config-file target="AndroidManifest.xml" parent="/manifest/application">
-			<receiver android:name="com.unarin.cordova.beacon.StartupBroadcastReceiver" >
-                <intent-filter>
-                    <action android:name="android.intent.action.BOOT_COMPLETED" />
-                    <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
-                    <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
-                </intent-filter>
-            </receiver>
-            <service android:enabled="true"
-                android:exported="true"
-                android:isolatedProcess="false"
-                android:label="myBackgroundBeaconService"
-                android:name="com.unarin.cordova.beacon.BeaconBackgroundService" />
-        </config-file>
 
         <hook type="after_plugin_install" src="hooks/android/MainActivityOnCreateModifier.js" />
         <hook type="after_plugin_install" src="hooks/android/addApplicationName.js" />
@@ -137,8 +123,6 @@
         <source-file src="src/android/ILocationManagerCommand.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/PausableThreadPoolExecutor.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/SharedPreferencesHelper.java" target-dir="src/com/unarin/cordova/beacon" />
-        <source-file src="src/android/BeaconBackgroundService.java" target-dir="src/com/unarin/cordova/beacon" />
-        <source-file src="src/android/StartupBroadcastReceiver.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/BeaconReferenceApplication.java" target-dir="src/com/unarin/cordova/beacon" />
 
         <framework src="src/android/cordova-plugin-ibeacon.gradle" custom="true" type="gradleReference" />
