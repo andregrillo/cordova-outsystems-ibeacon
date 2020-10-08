@@ -11,20 +11,33 @@ import android.content.Intent;
 
 import android.os.Build;
 import android.os.RemoteException;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
-import com.outsystems.expertsmobiledev.IbeaconLusiadasSample.MainActivity;
-import com.outsystems.expertsmobiledev.IbeaconLusiadasSample.R;
+import $appid.MainActivity;
+import $appid.R;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.Identifier;
+import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
+import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by dyoung on 12/13/13.
@@ -35,6 +48,9 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     private BackgroundPowerSaver backgroundPowerSaver;
     private MainActivity mainActivity = null;
     SharedPreferencesHelper preferencesHelper;
+    private boolean debugEnabled;
+    private CallbackContext callbackContext;
+    private List<PluginResult> results;
 
     public void onCreate() {
         super.onCreate();
@@ -52,6 +68,8 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
                 setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
 
         beaconManager.setDebug(true);
+        debugEnabled = true;
+        results= new ArrayList<>();
 
 
         // Uncomment the code below to use a foreground service to scan for beacons. This unlocks
@@ -60,7 +78,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // communicate to users that your app is using resources in the background.
         //
 
-        Notification.Builder builder = new Notification.Builder(this);
+        /*Notification.Builder builder = new Notification.Builder(this);
         builder.setSmallIcon(R.mipmap.ic_launcher);
         builder.setContentTitle("Scanning for Beacons");
         Intent intent = new Intent(this, MainActivity.class);
@@ -84,9 +102,9 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         //
         beaconManager.setEnableScheduledScanJobs(false);
         beaconManager.setBackgroundBetweenScanPeriod(0);
-        beaconManager.setBackgroundScanPeriod(1100);
+        beaconManager.setBackgroundScanPeriod(1100);*/
 
-        preferencesHelper = new SharedPreferencesHelper("NotificationsBD",getApplicationContext());
+        preferencesHelper = new SharedPreferencesHelper(getPackageName()+"_NotificationsBD",getApplicationContext());
 
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
@@ -175,16 +193,197 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
     @Override
     public void didEnterRegion(Region region) {
-
+        displayNotificationFor(region.getUniqueId(),1);
+        debugLog("didEnterRegion INSIDE for " + region.getUniqueId());
+        dispatchMonitorState("didEnterRegion", MonitorNotifier.INSIDE, region);
     }
 
     @Override
     public void didExitRegion(Region region) {
-
+        displayNotificationFor(region.getUniqueId(),-1);
+        debugLog("didExitRegion Outside for " + region.getUniqueId());
+        dispatchMonitorState("didEnterRegion", MonitorNotifier.OUTSIDE, region);
     }
 
     @Override
-    public void didDetermineStateForRegion(int i, Region region) {
+    public void didDetermineStateForRegion(int state, Region region) {
+        debugLog("didDetermineStateForRegion '" + nameOfRegionState(state) + "' for region: " + region.getUniqueId());
+        dispatchMonitorState("didDetermineStateForRegion", state, region);
+    }
+    private void dispatchMonitorState(final String eventType, final int state, final Region region) {
 
+        try {
+            JSONObject data = new JSONObject();
+            data.put("eventType", eventType);
+            data.put("region", mapOfRegion(region));
+
+            if (eventType.equals("didDetermineStateForRegion")) {
+                String stateName = nameOfRegionState(state);
+                data.put("state", stateName);
+            }
+            //send and keep reference to callback
+            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+            result.setKeepCallback(true);
+            if (callbackContext == null){
+                results.add(result);
+            }else {
+                callbackContext.sendPluginResult(result);
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "'monitoringDidFailForRegion' exception " + e.getCause());
+            sendFailEvent("monitoringDidFailForRegionWithError", region, e);
+
+        }
+    }
+
+    private void sendFailEvent(String eventType, Region region, Exception exception) {
+        try {
+            JSONObject data = new JSONObject();
+            data.put("eventType", eventType);//not perfect mapping, but it's very unlikely to happen here
+            data.put("region", mapOfRegion(region));
+            data.put("error", exception.getMessage());
+
+            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+            result.setKeepCallback(true);
+            if (callbackContext == null){
+                results.add(result);
+            }else {
+                callbackContext.sendPluginResult(result);
+            }
+        } catch (Exception e) {
+            //still failing, so kill all further event dispatch
+            Log.e(TAG, eventType + " error " + e.getMessage());
+            PluginResult result = new PluginResult(PluginResult.Status.ERROR, eventType + " error " + e.getMessage());
+            if (callbackContext == null){
+                results.add(result);
+            }else {
+                callbackContext.sendPluginResult(result);
+            }
+        }
+    }
+
+    public void createCallback(CallbackContext callbackContext){
+        this.callbackContext = callbackContext;
+        for (PluginResult result : results){
+            callbackContext.sendPluginResult(result);
+        }
+        results.clear();
+    }
+
+
+    private void debugLog(String message) {
+        if (debugEnabled) {
+            Log.d(TAG, message);
+        }
+    }
+    private JSONObject mapOfRegion(Region region) throws JSONException {
+        JSONObject dict = new JSONObject();
+
+        // identifier
+        if (region.getUniqueId() != null) {
+            dict.put("identifier", region.getUniqueId());
+        }
+
+        dict.put("uuid", region.getId1());
+
+        if (region.getId2() != null) {
+            dict.put("major", region.getId2());
+        }
+
+        if (region.getId3() != null) {
+            dict.put("minor", region.getId3());
+        }
+
+        dict.put("typeName", "BeaconRegion");
+
+        return dict;
+
+    }
+    private String nameOfRegionState(int state) {
+        switch (state) {
+            case MonitorNotifier.INSIDE:
+                return "CLRegionStateInside";
+            case MonitorNotifier.OUTSIDE:
+                return "CLRegionStateOutside";
+            /*case MonitorNotifier.UNKNOWN:
+                return "CLRegionStateUnknown";*/
+            default:
+                return "ErrorUnknownCLRegionStateObjectReceived";
+        }
+    }
+
+    private Boolean displayNotificationFor(String beaconId,int state){
+        JSONArray notifications = preferencesHelper.getNotifications(beaconId);
+        try {
+            Date now = new Date();
+            List<Integer> toRemove = new ArrayList<>();
+            for (int i = 0; i < notifications.length(); i++) {
+                JSONArray notification = notifications.getJSONArray(i);
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy-HH:mm");
+                    Date start = sdf.parse(notification.getString(2));
+                    Date end = sdf.parse(notification.getString(3));
+
+                    Boolean sent = false;
+                    if(end.after(now)) {
+                        if (start.before(now)) {
+                            if (state > 0) {
+                                //Enter
+                                sent = sendNotification(notification.getString(4), notification.getString(5), notification.getString(1));
+                            } else {
+                                sent = sendNotification(notification.getString(6), notification.getString(7), notification.getString(1));
+                                //Exit
+                            }
+                        }
+                    }else{
+                        sent = true;
+                    }
+
+                    if (sent){
+                        toRemove.add(i-toRemove.size());
+                    }
+                }catch (ParseException | NullPointerException e){
+                    debugLog(e.getMessage());
+                }
+            }
+            for (int id : toRemove){
+                notifications.remove(id);
+            }
+            preferencesHelper.setNotifications(beaconId,notifications);
+            return true;
+        }catch(JSONException e){
+            return false;
+        }
+    }
+
+    private Boolean sendNotification(String title, String message, String deepLink){
+        if (message.equals("disabled")){
+            return false;
+        }
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("DeepLinkID",deepLink);
+        PendingIntent notifyPendingIntent = PendingIntent.getActivity(
+                getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(),"com.unarin.cordova.beacon.notifications")
+                .setSmallIcon(R.mipmap.ic_launcher) // notification icon
+                //.setExtras()//Add DeeplinkID
+                .setContentIntent(notifyPendingIntent)
+                .setAutoCancel(true); // clear notification when clicked
+        if(!title.equals("")){
+            mBuilder.setContentTitle(title);
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            mBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        }
+        mBuilder.setContentText(message);
+        mBuilder.setStyle(new NotificationCompat.BigTextStyle()
+                .bigText(message));
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(new Random().nextInt(100), mBuilder.build());//Figure out what is notificationID
+        return true;
     }
 }
