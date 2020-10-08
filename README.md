@@ -26,7 +26,7 @@
 
  * Ranging
  * Monitoring
-* Region Monitoring (or geo fencing), works in all app states.(On android this requires a foreground service as such you have an always on notification saying "scaning for beacons")
+* Region Monitoring (or geo fencing), works in all app states.(On android this may require some userside changes for the app to autostart after being killed, for more information see [this link](https://dontkillmyapp.com/))
 
 #### Features exclusive to iOS
 
